@@ -243,8 +243,10 @@ def main():
 
         data = (X, Y)
         placeholders = (source_pl, target_pl, training_pl)
+        corpus_params = (T_ENGLISH, S_ENGLISH, T_FRENCH, S_FRENCH)
         
-        scores = NMT.inference(source_pl, target_pl, training_pl, T_ENGLISH, S_ENGLISH, T_FRENCH, S_FRENCH, BATCH_SIZE)
+        """ Defining tensorflow graph """
+        scores = NMT.inference(placeholders, corpus_params, BATCH_SIZE)
         #loss = NMT.conpute_loss(scores, target_pl)
         #train_op = NMT.training(loss)
         
