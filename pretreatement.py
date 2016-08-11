@@ -54,18 +54,19 @@ def remove_less_used_words(X):
     occurences = map(X_flat.count,union_token)
 
 #    A OPTIMISER
-	already_deleted = list()# List of the token which must be replaced by 'UNK'
+	already_deleted = list() # List of the token which must be replaced by 'UNK'
     for i in range(len(X)):
 		for j in range(len(X[i])
 			if X[i][j] == '':
 				del X[i][j] #If it is the empty token -> delete 
 			elif X[i][j] in already_deleted:
 				X[i][j] = 'UNK' # If already identified as a token to remove -> 'UNK' 
-			else:        
-        			indice = union_token.index(token) 
-        			if indice <= k:
+			else:      
+				# Else, if a new unused token is discovered -> remove and add to the list already_deleted
+        		indice = union_token.index(token) 
+        		if indice <= k:
 					already_deleted.append(X[i][j])
-            			X[i][j] = 'UNK' # Else, if a new unused token is discovered -> remove and add to the list already_deleted
+            		X[i][j] = 'UNK' 
 
 # ANCIEN A SUPPRIMER
     for i in range(len(X)):
@@ -93,21 +94,21 @@ def remove_special_character(X):
 
 # Essai fonction
     for sentence in X:
-	for token in sentence:
-		# Accents    
+		for token in sentence:
+			# Accents    
     		token = unicodedata.normalize('NFD', token).encode('ascii', 'ignore') 
     		token = token.decode('utf-8')
     
     		# Special characters
-   		 token = re.sub(r'[^\w\s]','',token)
+   		 	token = re.sub(r'[^\w\s]','',token)
     
-   		 # Uppercase 
-   		 token = token.lower()
+   		 	# Uppercase 
+   		 	token = token.lower()
    	 
-   		 # Numbers
-   		 # ...
+   		 	# Numbers
+   		 	# ...
     
-   		 # Punctuation
+   		 	# Punctuation
 
     
     #X = map(remove_special_character_sentence,X)
