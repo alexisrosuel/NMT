@@ -91,10 +91,7 @@ def encode(source):
     
     
 def state_vector_to_probability(state_vector, target, training):
-
     """ Produce the list of token probability in the target language given a state_vector """
-
-# Au lieu de repasser le embeddings, envoyer le one-hot representation à la place !
 
     with tf.name_scope('transformation'):
         # remove the dimensions 1
@@ -126,12 +123,14 @@ def state_vector_to_probability(state_vector, target, training):
         
         for t in range(S_FRENCH):
             if t:
-# Test one hot, a valider !  
-argmax = tf.argmax(outputs[t-1], dimension=1)
-  indices = zip(range(BATCH_SIZE),argmax)
-nouveau_input_lstm = tf.one_hot(indices, depth=T_FRENCH, on_value=1, off_value=0)
-
-                last = tf.cond(training, lambda: target[t-1], lambda: outputs[t-1])
+                # Test one hot, a valider !  
+                argmax = tf.argmax(outputs[t-1], dimension=1) # Get the token with highest prediction value for each example
+                indices = zip(range(BATCH_SIZE),argmax) # Build the indices list
+                one_hot_lstm_inputs = tf.one_hot(indices, depth=T_FRENCH, on_value=1, off_value=0) # Create the new one-hot vector
+                
+                """ If in training, feed with the target sentence, if not, feed with the choosen token (ie. here the one with the highest probability) """
+                last = tf.cond(training, lambda: target[t-1], lambda: one_hot_lstm_inputs) 
+                #last = tf.cond(training, lambda: target[t-1], lambda: outputs[t-1])
                 #last = sortie_dense[t - 1] if training else outputs[t - 1]
             else:
                 last = tf.zeros((BATCH_SIZE, T_FRENCH))
