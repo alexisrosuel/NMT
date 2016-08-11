@@ -37,7 +37,7 @@ def list_to_sentence(token_list):
 
 def sentences_from_one_hot(prediction, corpus):
 """ Convert the prediction of the NMT from the one_hot representation to the corresponding string """
-	 a_afficher = 15 # Number of setences to keep for display
+	a_afficher = 15 # Number of setences to keep for display
 
 	list_of_tokens = convert_one_hot_to_string(prediction, corpus) # Convert each token into from its one-hot representation to the real token given the right corpus
 
