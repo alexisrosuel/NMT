@@ -21,14 +21,16 @@ BATCH_SIZE = 0 # Updated at the beginning of the inference
 
 LEARNING_RATE = 0.01 # Initial learning rate
 
-def inference(source, target, training, t_english, s_english, t_french, s_french, batch_size):
+def inference(placeholders, corpus_params, batch_size):
     """ 
     Compute the predicted translation of the list of source sentences proposed 
     Reminder: translation from ENGLISH to FRENCH 
     """
-
+    
+    source, target, training = placeholders
+    
     global T_ENGLISH, S_ENGLISH, T_FRENCH, S_FRENCH
-    T_ENGLISH, S_ENGLISH, T_FRENCH, S_FRENCH= (t_english, s_english, t_french, s_french)
+    T_ENGLISH, S_ENGLISH, T_FRENCH, S_FRENCH= corpus_params
     
     global BATCH_SIZE
     BATCH_SIZE = batch_size
