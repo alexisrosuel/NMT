@@ -15,8 +15,7 @@ import os
 import time
 import math
 
-DIRECTORY=os.path.dirname(os.path.realpath(__file__))
-
+DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 
 N_ENGLISH = 0 # total numer of english sentences in the corpus --> updated later in compute_N function
 N_FRENCH = 0 # total numer of french sentences in the corpus --> updated later in compute_N function
@@ -85,8 +84,8 @@ def compute_N(X, language):
 def batch(source, target):
     """ Take randomly BATCH_SIZE elements from the source sentences and the target sentences """
     indices = np.random.choice(range(source.shape[0]), size=BATCH_SIZE)
-    source = np.take(source,indices,axis=0)
-    target = np.take(target,indices,axis=0)
+    source = np.take(source, indices, axis=0)
+    target = np.take(target, indices, axis=0)
     return (source,target)
     
 #==============================================================================
@@ -99,9 +98,9 @@ def batch(source, target):
         
 def placeholder_input():
     """ Define the placeholder for the source sentence, the target sentence, and the condition for executing the training phase or not """
-    source_placeholder = tf.placeholder(tf.float32, shape = (BATCH_SIZE, 1, S_ENGLISH, T_ENGLISH), name = 'source')
-    target_placeholder = tf.placeholder(tf.float32, shape = (BATCH_SIZE, 1, S_FRENCH, T_FRENCH), name = 'target')
-    training_placeholder = tf.placeholder(tf.bool, shape = [], name = 'training')
+    source_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 1, S_ENGLISH, T_ENGLISH), name='source')
+    target_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 1, S_FRENCH, T_FRENCH), name='target')
+    training_placeholder = tf.placeholder(tf.bool, shape=[], name='training')
     return source_placeholder, target_placeholder, training_placeholder
     
 #==============================================================================
@@ -121,11 +120,11 @@ def run_prediction(data, sess, placeholders, scores):
     X_batch = np.squeeze(X_batch)    
     prediction = np.squeeze(prediction)
     
-sentences_source = sentences_from_one_hot(X_batch, CORPUS_ENGLISH)
-sentences_target = sentences_from_one_hot(prediction, CORPUS_FRENCH)
+	source_sentences = sentences_from_one_hot(X_batch, CORPUS_ENGLISH)
+	target_sentences = sentences_from_one_hot(prediction, CORPUS_FRENCH)
 
-# Print the pairs source -> target
-    for source, target in zip(sentence_source, sentence_target): 
+	# Print the pairs source -> target
+    for source, target in zip(source_sentences, target_sentences): 
         print(source + " --> " + target)
     
     print("================================================================")
@@ -138,18 +137,18 @@ sentences_target = sentences_from_one_hot(prediction, CORPUS_FRENCH)
     prediction = np.squeeze(prediction)
         
     
-    sentences_source = sentences_from_one_hot(X_batch, CORPUS_ENGLISH)
-sentences_target = sentences_from_one_hot(prediction, CORPUS_FRENCH)
+    source_sentences = sentences_from_one_hot(X_batch, CORPUS_ENGLISH)
+	target_sentences = sentences_from_one_hot(prediction, CORPUS_FRENCH)
 
-# Print the pairs source -> target
-    for source, target in zip(sentence_source, sentence_target): 
+	# Print the pairs source -> target
+    for source, target in zip(source_sentences, target_sentences): 
         print(source + " --> " + target)
  
         
     
 
 
-def run_training(data, sess, placeholders, scores,loss,train_op, summary_op, summary_writer):        
+def run_training(data, sess, placeholders, scores, loss, train_op, summary_op, summary_writer):        
     """ Training phase: for each generated batch, apply the training operator"""
 
     X, Y = data
@@ -161,12 +160,12 @@ def run_training(data, sess, placeholders, scores,loss,train_op, summary_op, sum
     for step in range(MAX_STEP):
         X_batch, Y_batch = batch(X[:divide_set],Y[:divide_set])
         feed_dict = {source_pl: X_batch, target_pl: Y_batch, training_pl: True}
-        _, loss_value = sess.run([train_op, loss], feed_dict = feed_dict)
+        _, loss_value = sess.run([train_op, loss], feed_dict=feed_dict)
         
         if step % 1 == 0:
             duration = time.time() - start_time
             print('Step %d: loss = %.2f (%.3f sec)' % (step, loss_value, duration))
-            summary_str = sess.run(summary_op, feed_dict = feed_dict)
+            summary_str = sess.run(summary_op, feed_dict=feed_dict)
             summary_writer.add_summary(summary_str, step)
             summary_writer.flush()
             
@@ -176,13 +175,13 @@ def run_training(data, sess, placeholders, scores,loss,train_op, summary_op, sum
         
             X_batch, Y_batch = batch(X[divide_set+1:],Y[divide_set+1:])
             feed_dict = {source_pl: X_batch, target_pl: Y_batch, training_pl: False}
-            loss_value = sess.run(loss, feed_dict = feed_dict)
+            loss_value = sess.run(loss, feed_dict=feed_dict)
             
-            summary_str = sess.run(summary_op, feed_dict = feed_dict, options=run_options, run_metadata=run_metadata)
+            summary_str = sess.run(summary_op, feed_dict=feed_dict, options=run_options, run_metadata=run_metadata)
             summary_writer.add_run_metadata(run_metadata, 'step%d' % step)
             summary_writer.add_summary(summary_str, step)
             print('==Step %d: test loss = %.2f (%.3f sec)' % (step, loss_value, duration))
-    #return saver
+    
     
     
     
@@ -197,12 +196,12 @@ def set_up_data():
     for sentence in X:
 	# essai : sentence = sentence[:SENTENCE_LENGTH]
         resul.append(sentence[:SENTENCE_LENGTH])
-    X=resul
+    X = resul
     
     resul = list()
     for sentence in Y:
         resul.append(sentence[:SENTENCE_LENGTH])
-    Y=resul
+    Y = resul
     
     
     print('Computing the corpus sizes...')
@@ -232,7 +231,7 @@ def set_up_data():
     
     
 def main():
-    (X, Y) = set_up_data() # Load and prepare the dataset : X -> source sentences, Y -> target sentences 
+    X, Y = set_up_data() # Load and prepare the dataset : X -> source sentences, Y -> target sentences 
     
     with tf.Graph().as_default():
         
