@@ -86,7 +86,7 @@ def batch(source, target):
     indices = np.random.choice(range(source.shape[0]), size=BATCH_SIZE)
     source = np.take(source, indices, axis=0)
     target = np.take(target, indices, axis=0)
-    return (source,target)
+    return (source, target)
     
 #==============================================================================
 # BATCH GENERATION
@@ -113,7 +113,7 @@ def run_prediction(data, sess, placeholders, scores):
     source_pl, target_pl, training_pl = placeholders
     split_set = int(math.floor(0.9*len(X))) # Value for spliting the set in 90% training / 10% test 
     
-    X_batch, Y_batch = batch(X[:split_set:],Y[:split_set:]) # Take a batch of sentences from the training set
+    X_batch, Y_batch = batch(X[:split_set:], Y[:split_set:]) # Take a batch of sentences from the training set
     feed_dict = {source_pl: X_batch, target_pl: Y_batch, training_pl: False}
     prediction = sess.run(scores, feed_dict=feed_dict)  
     
@@ -129,7 +129,7 @@ def run_prediction(data, sess, placeholders, scores):
     
     print("================================================================")
    
-    X_batch, Y_batch = batch(X[split_set+1:],Y[split_set+1:]) # Take a batch of sentences from the test set
+    X_batch, Y_batch = batch(X[split_set+1:], Y[split_set+1:]) # Take a batch of sentences from the test set
     feed_dict = {source_pl: X_batch, target_pl: Y_batch, training_pl: False}
     prediction = sess.run(scores, feed_dict=feed_dict)  
     
@@ -155,14 +155,14 @@ def run_training(data, sess, placeholders, scores, loss, train_op, summary_op, s
     source_pl, target_pl, training_pl = placeholders
 
     start_time = time.time()
-    divide_set = int(math.floor(0.9*len(X)))
+    divide_set = int(math.floor(0.9*len(X))) # Value for spliting the set in 90% training / 10% test 
     
     for step in range(MAX_STEP):
-        X_batch, Y_batch = batch(X[:divide_set],Y[:divide_set])
+        X_batch, Y_batch = batch(X[:divide_set], Y[:divide_set]) # Take a batch from the training set
         feed_dict = {source_pl: X_batch, target_pl: Y_batch, training_pl: True}
         _, loss_value = sess.run([train_op, loss], feed_dict=feed_dict)
         
-        if step % 1 == 0:
+        if step % 5 == 0:
             duration = time.time() - start_time
             print('Step %d: loss = %.2f (%.3f sec)' % (step, loss_value, duration))
             summary_str = sess.run(summary_op, feed_dict=feed_dict)
@@ -170,38 +170,42 @@ def run_training(data, sess, placeholders, scores, loss, train_op, summary_op, s
             summary_writer.flush()
             
         if step % 10 == 0:
+            """ Log runtime activity """
             run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
             run_metadata = tf.RunMetadata()
         
-            X_batch, Y_batch = batch(X[divide_set+1:],Y[divide_set+1:])
+            """ Evaluate performace on the test set """
+            X_batch, Y_batch = batch(X[divide_set+1:], Y[divide_set+1:])
             feed_dict = {source_pl: X_batch, target_pl: Y_batch, training_pl: False}
             loss_value = sess.run(loss, feed_dict=feed_dict)
             
             summary_str = sess.run(summary_op, feed_dict=feed_dict, options=run_options, run_metadata=run_metadata)
             summary_writer.add_run_metadata(run_metadata, 'step%d' % step)
             summary_writer.add_summary(summary_str, step)
-            print('==Step %d: test loss = %.2f (%.3f sec)' % (step, loss_value, duration))
+            print('===== Step %d: test loss = %.2f (%.3f sec)' % (step, loss_value, duration))
     
     
     
     
 def set_up_data():
-    (X,Y) = pretreatement.import_dataset()
+    X, Y = pretreatement.import_dataset()
     
     print('Applying cleansing...')
     X = pretreatement.pretreatement(X)
     Y = pretreatement.pretreatement(Y)
     
-    resul = list()
+    # Non en fait : A Faire dans le fichier pretraitement
+    #resul = list()
     for sentence in X:
 	# essai : sentence = sentence[:SENTENCE_LENGTH]
-        resul.append(sentence[:SENTENCE_LENGTH])
-    X = resul
+    #    resul.append(sentence[:SENTENCE_LENGTH])
+    #X = resul
     
-    resul = list()
+    #resul = list()
     for sentence in Y:
-        resul.append(sentence[:SENTENCE_LENGTH])
-    Y = resul
+    # essai : sentence = sentence[:SENTENCE_LENGTH]
+    #    resul.append(sentence[:SENTENCE_LENGTH])
+    #Y = resul
     
     
     print('Computing the corpus sizes...')
@@ -225,7 +229,7 @@ def set_up_data():
     X, CORPUS_ENGLISH= treatement.convert_to_one_hot(X, params_ENGLISH)
     Y, CORPUS_FRENCH= treatement.convert_to_one_hot(Y, params_FRENCH)
     
-    return (X,Y)
+    return (X, Y)
     
     
     
