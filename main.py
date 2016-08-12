@@ -41,7 +41,15 @@ MAX_STEP = 1000 # number of training iteration
 
 
 def compute_T(X, language):
-    """ Compute the T_FRENCH or T_ENGLISH values """
+    """ Compute the T_FRENCH or T_ENGLISH values
+    
+    Args:
+    	X: List of sentences, where each sentence is a list of the token within it
+    	language: can be 'english' or 'french'
+    	
+    Returns:
+    	Nothing (just modify the global variables
+    """
     X_flat = [item for sublist in X for item in sublist]
     
     if language == 'english':    
@@ -52,7 +60,15 @@ def compute_T(X, language):
         T_FRENCH = len(list(set(X_flat)))
 
 def compute_S(X, language): 
-    """ Compute the S_FRENCH and S_ENGLISH values """
+    """ Compute the S_FRENCH and S_ENGLISH values 
+    
+    Args:
+    	X: List of sentences, where each sentence is a list of the token within it
+    	language: can be 'english' or 'french'
+    	
+    Returns:
+    	Nothing (just modify the global variables)
+    """
     if language == 'english':    
         global S_ENGLISH 
         S_ENGLISH = len(X[0])
@@ -61,7 +77,15 @@ def compute_S(X, language):
         S_FRENCH = len(X[0])
         
 def compute_N(X, language): 
-    """ Compute the N_FRENCH and N_ENGLISH values """
+    """ Compute the N_FRENCH and N_ENGLISH values 
+    
+    Args:
+    	X: List of sentences, where each sentence is a list of the token within it
+    	language: can be 'english' or 'french'
+    	
+    Returns:
+    	Nothing (just modify the global variables)
+    """
     if language == 'english':    
         global N_ENGLISH 
         N_ENGLISH = len(X)
@@ -79,7 +103,18 @@ def compute_N(X, language):
 #==============================================================================
 
 def batch(source, target):
-    """ Take randomly BATCH_SIZE elements from the source sentences and the target sentences """
+    """ Take randomly BATCH_SIZE elements from the source sentences and the target sentences 
+    
+    Args:
+    	source: numpy array of the source sentences, using one-hot vector representation for each token, 
+    		with shape (N_ENGLISH, 1, S_ENGLISH, T_ENGLISH)
+    	target: numpy array of the target sentences, using one-hot vector representation for each token,
+    		with shape (N_FRENCH, 1, S_FRENCH, T_FRENCH)
+    	
+    Returns:
+    	numpy 4D array
+    	numpy 4D array
+    """
     indices = np.random.choice(range(source.shape[0]), size=BATCH_SIZE)
     source = np.take(source, indices, axis=0)
     target = np.take(target, indices, axis=0)
@@ -94,7 +129,16 @@ def batch(source, target):
 #==============================================================================
         
 def placeholder_input():
-    """ Define the placeholder for the source sentence, the target sentence, and the condition for executing the training phase or not """
+    """ Define the placeholder for the source sentence, the target sentence, and the condition for executing the training phase or not 
+    
+    Args:
+    	_
+    
+    Returns:
+    	4D tensor of tf.float32
+    	4D tensor of tf.float32
+    	4D tensor of tf.bool
+    """
     source_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 1, S_ENGLISH, T_ENGLISH), name='source')
     target_placeholder = tf.placeholder(tf.float32, shape=(BATCH_SIZE, 1, S_FRENCH, T_FRENCH), name='target')
     training_placeholder = tf.placeholder(tf.bool, shape=[], name='training')
@@ -105,7 +149,18 @@ def placeholder_input():
 #============================================================================== 
     
 def run_prediction(data, sess, placeholders, scores):
-    """ Compute the prediction of a target sentence given a source sentence """    
+    """ Compute the prediction of a target sentence given a source sentence 
+    
+    Args:
+    	data: the sources and the targets sentences, each one is a numpy 4D array
+    	sess: the tf.Session used as default
+    	placeholders: the placeholder for the source sentences, the target sentences, and the training boolean
+    	scores: the tensorflow function for computing the predictions of the model
+    	
+    Returns:
+    	Nothing (just print several pair of sentences for evaluating the quality of the translation)
+    """    
+    
     X, Y = data
     source_pl, target_pl, training_pl = placeholders
     split_set = int(math.floor(0.9*len(X))) # Value for spliting the set in 90% training / 10% test 
@@ -143,7 +198,22 @@ def run_prediction(data, sess, placeholders, scores):
  
 
 def run_training(data, sess, placeholders, scores, loss, train_op, summary_op, summary_writer):        
-    """ Training phase: for each generated batch, apply the training operator"""
+    """ Training phase: for each generated batch, apply the training operator 
+    
+    Args:
+    	data: the sources and the targets sentences, each one is a numpy 4D array
+    	sess: the tf.Session used as default
+    	placeholders: the placeholder for the source sentences, the target sentences, and the training boolean
+    	scores: the tensorflow function for computing the predictions of the model
+    	loss: the tensorflow function for computing the loss of the model
+    	train_op: the training operator of the model
+    	summary_op: the summary operator of the model
+    	sumary_writer: the summary writer of the model
+    	
+    	
+    Returns:
+    	Nothing (just train the nodel in place)
+    """
 
     X, Y = data
     source_pl, target_pl, training_pl = placeholders
@@ -184,7 +254,15 @@ def run_training(data, sess, placeholders, scores, loss, train_op, summary_op, s
     
     
 def set_up_data():
-	""" Load the data and compute the value of some global variables """
+	""" Load the data and compute the value of some global variables 
+	
+	Args:
+		_
+		
+	Returns:
+		4D numpy array containing the source sentences, using one-hot vector representation
+		4D numpy array containing the target sentences, using one-hot vector representation
+	"""
     
     X, Y = pretreatment.import_dataset()
     
