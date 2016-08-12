@@ -88,15 +88,11 @@ def embeddings_to_state_vector(embeddings):
     """
 
     with tf.variable_scope('Encoding') as scope_forward:
+        inputs = tf.squeeze(embeddings)                                     # Remove the dimensions 1
+        inputs = tf.transpose(inputs, perm=[1,0,2])                         # Permuting batch_size and n_steps
+        inputs = tf.reshape(inputs, shape=[-1, EMBEDDINGS_DIMENSION])       # Reshaping to (n_steps*batch_size, EMBEDDINGS_DIMENSION)
+        inputs = tf.split(split_dim=0, num_split=S_ENGLISH, value=inputs)   # Split to get a list of 'n_steps' tensors of shape (batch_size, EMBEDDINGS_DIMENSION)
         
-        inputs = tf.squeeze(embeddings) # remove the dimensions 1
-        
-        inputs = tf.transpose(inputs, perm=[1,0,2]) # Permuting batch_size and n_steps
-        
-        inputs = tf.reshape(inputs, shape=[-1, EMBEDDINGS_DIMENSION]) # Reshaping to (n_steps*batch_size, EMBEDDINGS_DIMENSION)
-        
-        inputs = tf.split(split_dim=0, num_split=S_ENGLISH, value=inputs) # Split to get a list of 'n_steps' tensors of shape (batch_size, EMBEDDINGS_DIMENSION)
-
         cell_forward = tf.nn.rnn_cell.LSTMCell(LSTM_SIZE, num_proj=EMBEDDINGS_DIMENSION, state_is_tuple=True)
         state = [tf.zeros((BATCH_SIZE, sz)) for sz in cell_forward.state_size]
         
@@ -105,6 +101,7 @@ def embeddings_to_state_vector(embeddings):
             scope_forward.reuse_variables()
 
         return state
+
 
 def encode(source):
     """ Build the state vector from the source sentence (using one-hot representation) 
@@ -134,16 +131,11 @@ def state_vector_to_probability(state_vector, target, training):
     """
 
     with tf.name_scope('shape_transformation'):
+        target = tf.squeeze(target)                                         # Remove the dimensions 1
+        target = tf.transpose(target, perm=[1,0,2])                         # Permuting batch_size and n_steps
+        target = tf.reshape(target, shape=[-1,T_FRENCH])                    # Reshaping to (n_steps*batch_size, T_FRENCH)
+        target = tf.split(split_dim=0, num_split=S_FRENCH, value=target)    # Split to get a list of 'n_steps' tensors of shape (batch_size, T_FRENCH)
         
-        target = tf.squeeze(target) # remove the dimensions 1
-        
-        target = tf.transpose(target, perm=[1,0,2]) # Permuting batch_size and n_steps
-        
-        target = tf.reshape(target, shape=[-1,T_FRENCH]) # Reshaping to (n_steps*batch_size, T_FRENCH)
-        
-        target = tf.split(split_dim=0, num_split=S_FRENCH, value=target) # Split to get a list of 'n_steps' tensors of shape (batch_size, T_FRENCH)
-        
-            
     with tf.variable_scope('Decoding') as scope_backward:     
         cell_backward = tf.nn.rnn_cell.LSTMCell(LSTM_SIZE, num_proj=EMBEDDINGS_DIMENSION, state_is_tuple=True)       
         outputs = [None] * S_FRENCH
@@ -163,13 +155,8 @@ def state_vector_to_probability(state_vector, target, training):
         
         for t in range(S_FRENCH):
             if t:
-                # Test one hot, a valider !  
-                argmax = tf.argmax(outputs[t-1], dimension=1) # Get the token with highest prediction value for each example
-                #range_tensor = tf.range(0, limit=BATCH_SIZE) # Build the indices list
-                #indices = tf.pack([tf.cast(range_tensor, dtype=tf.int32), tf.cast(argmax, dtype=tf.int32)], axis=1)
-                
-                one_hot_lstm_inputs = tf.cast(tf.one_hot(argmax, depth=T_FRENCH, on_value=1, off_value=0), dtype=tf.float32) # Create the new one-hot vector
-                
+                argmax = tf.argmax(outputs[t-1], dimension=1)                                                                   # Get the token with highest prediction value for each example
+                one_hot_lstm_inputs = tf.cast(tf.one_hot(argmax, depth=T_FRENCH, on_value=1, off_value=0), dtype=tf.float32)    # Create the new one-hot vector
                 
                 """ If in training, feed with the target sentence, if not, feed with the choosen token (ie. here the one with the highest probability) """
                 last = tf.cond(training, lambda: target[t-1], lambda: one_hot_lstm_inputs) 
@@ -201,6 +188,7 @@ def decode(state_vector, target, training):
     outputs = state_vector_to_probability(state_vector, target, training)
     return outputs
 
+
 def conpute_loss(scores, target):
     """ Compute the perplexity of the batch 
     
@@ -230,7 +218,6 @@ def conpute_loss(scores, target):
             loss = loss
                    + l2_weights*tf.nn.l2_loss(w)
                    + l2_weights*tf.nn.l2_loss(b)
-            
             
         with tf.variable_scope('Decoding', reuse=True):
             w = tf.get_variable('weights')
