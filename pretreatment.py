@@ -86,7 +86,6 @@ def remove_less_used_words(X):
     			token = 'UNK'
 
 
-
     print('Removing completed.')
     
     return X
