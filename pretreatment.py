@@ -50,8 +50,17 @@ def remove_less_used_words(X):
     print('Removing token not enough used...')
     X_flat = [item for sublist in X for item in sublist]
     
+    """ Create a dictionary {token1: token1_occurence, token2: token2_occurence, etc.} """
     union_token = list(set(X_flat))
     occurences = map(X_flat.count,union_token)
+    dictionary_occurences = dict(zip(union_token, occurences))
+    
+    for sentence in X:
+    	for token in sentence:
+    		if token == '':
+    			del token
+    		elif dictionary_occurences[token] <= k:
+    			token = 'UNK'
 
 #    A OPTIMISER
     already_deleted = list() # List of the token which must be replaced by 'UNK'
