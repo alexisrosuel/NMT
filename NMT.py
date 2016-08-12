@@ -25,6 +25,14 @@ def inference(placeholders, corpus_params, batch_size):
     """ 
     Compute the predicted translation of the list of source sentences proposed 
     Reminder: translation from ENGLISH to FRENCH 
+    
+    Args:
+        placeholders: list of placeholders (type is tf.float32, tf.float32, tf.bool)
+        corpus_params: list of int
+        batch_size: int
+        
+    Returns:
+        4D tensor, shape=(BATCH_SIZE, 1, S_FRENCH, T_FRENCH)
     """
     
     source, target, training = placeholders
@@ -41,7 +49,14 @@ def inference(placeholders, corpus_params, batch_size):
 
 
 def produce_embeddings(source):
-    """ Produce the embbedings from the one-hot vectors """
+    """ Produce the embbedings from the one-hot vectors 
+    
+    Args:
+        source: 4D tensor, shape=(BATCH_SIZE, 1, S_ENGLISH, T_ENGLISH)
+    
+    Returns:
+        4D tensor, shape=(BATCH_SIZE, 1, S_ENGLISH, EMBEDDINGS_DIMENSION)
+    """
     
     with tf.variable_scope('encode_dense'):
         weights = tf.get_variable(name='weights', 
@@ -63,7 +78,14 @@ def produce_embeddings(source):
         
 
 def embeddings_to_state_vector(embeddings):
-    """ Use a RNN to produce the state vector corresponding to each sentence """
+    """ Use a RNN to produce the state vector corresponding to each sentence 
+    
+    Args:
+        embeddings: 4D tensor, shape=(BATCH_SIZE, 1, S_ENGLISH, EMBEDDINGS_DIMENSION)
+    
+    Returns:
+        2D tensor, shape=(BATCH_SIZE, LSTM_SIZE)
+    """
 
     with tf.variable_scope('forward') as scope_forward:
         # remove the dimensions 1
@@ -85,7 +107,14 @@ def embeddings_to_state_vector(embeddings):
         return state
 
 def encode(source):
-    """ Build the state vector from the source sentence (using one-hot representation) """
+    """ Build the state vector from the source sentence (using one-hot representation) 
+    
+    Args:
+        source: 4D tensor, shape=(BATCH_SIZE, 1, S_ENGLISH, T_ENGLISH)
+    
+    Returns:
+        2D tensor, shape=(BATCH_SIZE, LSTM_SIZE)
+    """
 
     embeddings = produce_embeddings(source)
     state_vector = embeddings_to_state_vector(embeddings)
@@ -93,7 +122,16 @@ def encode(source):
     
     
 def state_vector_to_probability(state_vector, target, training):
-    """ Produce the list of token probability in the target language given a state_vector """
+    """ Produce the list of token probability in the target language given a state_vector 
+    
+    Args:
+        state_vector: 2D tensor, shape=(BATCH_SIZE, LSTM_SIZE)
+        target: 4D tensor, shape=(BATCH_SIZE, 1, S_FRENCH, T_FRENCH)
+        training: bool tensor
+    
+    Returns:
+        3D tensor, shape=(BATCH_SIZE, S_FRENCH, T_FRENCH)
+    """
 
     with tf.name_scope('transformation'):
         # remove the dimensions 1
@@ -149,12 +187,31 @@ def state_vector_to_probability(state_vector, target, training):
     
     
 def decode(state_vector, target, training):
-    """ Produce the probability of appearance for each token """
+    """ Produce the probability of appearance for each token 
+    
+    Args:
+        state_vector: 2D tensor, shape=(BATCH_SIZE, LSTM_SIZE)
+        target: 4D tensor, shape=(BATCH_SIZE, 1, S_FRENCH, T_FRENCH)
+        training: bool tensor
+    
+    Returns:
+        3D tensor, shape=(BATCH_SIZE, S_FRENCH, T_FRENCH)
+    """
+    
     outputs = state_vector_to_probability(state_vector, target, training)
     return outputs
 
 def conpute_loss(scores, target):
-    """ Compute the perplexity of the batch """
+    """ Compute the perplexity of the batch 
+    
+    Args:
+        scores: 3D tensor, shape=(BATCH_SIZE, 1, S_FRENCH, T_FRENCH)
+        target: 4D tensor, shape=(BATCH_SIZE, 1, S_FRENCH, T_FRENCH)
+        
+    Returns:
+        tf.float32 tensor
+    """
+    
     with tf.name_scope('loss_computation'):
         sortie_loss = tf.squeeze(target)    
         scores = tf.squeeze(scores) 
@@ -182,7 +239,15 @@ def conpute_loss(scores, target):
     
     
 def training(loss):
-    """ Produce the training operator, using the Adam Optimizer """
+    """ Produce the training operator, using the Adam Optimizer 
+    
+    Args:
+        loss: tf.float32 tensor
+        
+    Returns:
+        training operator
+    """
+    
     tf.scalar_summary(loss.op.name,loss)
     optimizer = tf.train.AdamOptimizer(LEARNING_RATE)    
     global_step = tf.Variable(0, name='global_step', trainable=False)
