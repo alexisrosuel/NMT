@@ -68,13 +68,23 @@ def remove_less_used_words(X):
                     already_deleted.append(X[i][j])
                     X[i][j] = 'UNK' 
 
-## ANCIEN A SUPPRIMER
-#    for i in range(len(X)):
-#    	for j in range(len(X[i])):
-#         indice = union_token.index(X[i][j])
-#         if occurences[indice] <= k:
-#             X[i][j] = 'UNK'         
-#    
+# Essayer avec un dict
+#    A OPTIMISER
+    already_kept = list() # List of the token which must be replaced by 'UNK'
+    for i in range(len(X)):
+        for j in range(len(X[i])):
+            if X[i][j] == '':
+                del X[i][j] #If it is the empty token -> delete 
+            elif X[i][j] not in already_kept:
+                X[i][j] = 'UNK' # If already identified as a token to remove -> 'UNK' 
+            else:
+			# Else, if a new unused token is discovered -> remove and add to the list already_deleted
+                indice = union_token.index(X[i][j]) 
+                if occurences[indice] > k:
+                    already_kept.append(X[i][j])
+                else:
+                	X[i][j] = 'UNK' 
+
     print('Removing completed.')
     
     return X
