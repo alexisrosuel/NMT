@@ -184,23 +184,23 @@ def run_training(data, sess, placeholders, scores, loss, train_op, summary_op, s
 def set_up_data():
     X, Y = pretreatment.import_dataset()
     
+    
+    
+    
+   
+    
     print('Applying cleansing...')
     X = pretreatment.pretreatment(X)
     Y = pretreatment.pretreatment(Y)
     
-    # Non en fait : A Faire dans le fichier pretraitement
-    #resul = list()
+    
     for sentence in X:
         del sentence[SENTENCE_LENGTH+1:]
-        #resul.append(sentence[:SENTENCE_LENGTH])
-    #X = resul
+        
     
-    #resul = list()
+    
     for sentence in Y:
         del sentence[SENTENCE_LENGTH+1:]
-    #    resul.append(sentence[:SENTENCE_LENGTH])
-    #Y = resul
-    
     
     print('Computing the corpus sizes...')
     compute_T(X, 'english')
