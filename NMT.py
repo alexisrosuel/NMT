@@ -43,8 +43,8 @@ def inference(placeholders, corpus_params, batch_size):
     global BATCH_SIZE
     BATCH_SIZE = batch_size
     
-    state_vector = encode(source) # Build the state_vector for each source sentence
-    prediction = decode(state_vector, target, training) # Produce a translation given a state_vector
+    state_vector = encode(source)                           # Build the state_vector for each source sentence
+    prediction = decode(state_vector, target, training)     # Produce a translation given a state_vector
     return prediction
 
 
@@ -66,13 +66,13 @@ def produce_embeddings(source):
         
         weights_hist = tf.histogram_summary("weights-encode", weights)
         
-        biases = tf.get_variable(name = 'biases',
-                                 shape = [EMBEDDINGS_DIMENSION],          
-                                 initializer = tf.constant_initializer(0.0))
+        biases = tf.get_variable(name='biases',
+                                 shape=[EMBEDDINGS_DIMENSION],          
+                                 initializer=tf.constant_initializer(0.0))
                                  
         biases_hist = tf.histogram_summary("biases-encode", biases)
         
-        embeddings = tf.nn.tanh(biases + tf.nn.conv2d(source, weights, strides = [1,1,1,1], padding='VALID'))
+        embeddings = tf.nn.tanh(biases + tf.nn.conv2d(source, filter=weights, strides=[1,1,1,1], padding='VALID'))
         
         return embeddings                
         
@@ -88,16 +88,16 @@ def embeddings_to_state_vector(embeddings):
     """
 
     with tf.variable_scope('Encoding') as scope_forward:
-        # remove the dimensions 1
-        inputs = tf.squeeze(embeddings)
-        # Permuting batch_size and n_steps
-        inputs = tf.transpose(inputs,[1,0,2])
-        # Reshaping to (n_steps*batch_size, n_input)
-        inputs = tf.reshape(inputs, [-1, EMBEDDINGS_DIMENSION])
-        # Split to get a list of 'n_steps' tensors of shape (batch_size, n_input)
-        inputs = tf.split(0, S_ENGLISH, inputs)
+        
+        inputs = tf.squeeze(embeddings) # remove the dimensions 1
+        
+        inputs = tf.transpose(inputs, perm=[1,0,2]) # Permuting batch_size and n_steps
+        
+        inputs = tf.reshape(inputs, shape=[-1, EMBEDDINGS_DIMENSION]) # Reshaping to (n_steps*batch_size, EMBEDDINGS_DIMENSION)
+        
+        inputs = tf.split(split_dim=0, num_split=S_ENGLISH, value=inputs) # Split to get a list of 'n_steps' tensors of shape (batch_size, EMBEDDINGS_DIMENSION)
 
-        cell_forward = tf.nn.rnn_cell.LSTMCell(LSTM_SIZE, num_proj = EMBEDDINGS_DIMENSION, state_is_tuple = True)
+        cell_forward = tf.nn.rnn_cell.LSTMCell(LSTM_SIZE, num_proj=EMBEDDINGS_DIMENSION, state_is_tuple=True)
         state = [tf.zeros((BATCH_SIZE, sz)) for sz in cell_forward.state_size]
         
         for t in range(S_ENGLISH):
@@ -134,25 +134,25 @@ def state_vector_to_probability(state_vector, target, training):
     """
 
     with tf.name_scope('shape_transformation'):
-        # remove the dimensions 1
-        target = tf.squeeze(target)
-        # Permuting batch_size and n_steps
-        target = tf.transpose(target ,[1,0,2])
-        # Reshaping to (n_steps*batch_size, n_input)
-        target = tf.reshape(target , [-1, T_FRENCH]) 
-        # Split to get a list of 'n_steps' tensors of shape (batch_size, n_input)
-        target = tf.split(0, S_FRENCH, target )
-        # S_FRENCH; BATCH; T_FRENCH
+        
+        target = tf.squeeze(target) # remove the dimensions 1
+        
+        target = tf.transpose(target, perm=[1,0,2]) # Permuting batch_size and n_steps
+        
+        target = tf.reshape(target, shape=[-1,T_FRENCH]) # Reshaping to (n_steps*batch_size, T_FRENCH)
+        
+        target = tf.split(split_dim=0, num_split=S_FRENCH, value=target) # Split to get a list of 'n_steps' tensors of shape (batch_size, T_FRENCH)
+        
             
     with tf.variable_scope('Decoding') as scope_backward:     
-        cell_backward = tf.nn.rnn_cell.LSTMCell(LSTM_SIZE, num_proj = EMBEDDINGS_DIMENSION, state_is_tuple = True)       
+        cell_backward = tf.nn.rnn_cell.LSTMCell(LSTM_SIZE, num_proj=EMBEDDINGS_DIMENSION, state_is_tuple=True)       
         outputs = [None] * S_FRENCH
         y = [None] * S_FRENCH
         state = state_vector
         
         weights = tf.get_variable(name='weights',
-                                  shape = [EMBEDDINGS_DIMENSION, T_FRENCH],
-                                  initializer = tf.random_normal_initializer(stddev =1.0/math.sqrt(float(T_FRENCH)))
+                                  shape=[EMBEDDINGS_DIMENSION, T_FRENCH],
+                                  initializer=tf.random_normal_initializer(stddev=1.0/math.sqrt(float(T_FRENCH)))
                                   )                                       
         weights_hist = tf.histogram_summary("weights-decode", weights)
         
@@ -183,7 +183,7 @@ def state_vector_to_probability(state_vector, target, training):
             outputs[t] = tf.nn.softmax(tf.matmul(y[t], weights) + biases)
             scope_backward.reuse_variables()
         
-        return tf.transpose(outputs, [1,0,2])
+        return tf.transpose(outputs, shape=[1,0,2])
     
     
 def decode(state_vector, target, training):
@@ -216,11 +216,11 @@ def conpute_loss(scores, target):
         sortie_loss = tf.squeeze(target)    
         scores = tf.squeeze(scores) 
         
-        loss = tf.mul(scores, sortie_loss)
-        loss = tf.reduce_sum(loss,reduction_indices=2)
+        loss = tf.reduce_sum(tf.mul(scores, sortie_loss), reduction_indice=2) # Get the activation of the target token
+        #loss = tf.reduce_sum(loss,reduction_indices=2)
         loss = tf.clip_by_value(loss, clip_value_min=1e-10, clip_value_max=1.0)
-        loss = tf.log(loss)
-        loss = tf.reduce_sum(loss, reduction_indices=1)
+        #loss = 
+        loss = tf.reduce_sum(tf.log(loss), reduction_indices=1)
         loss = tf.reduce_mean(loss)
         
         l2_weights = 0.01
@@ -252,8 +252,8 @@ def training(loss):
         training operator
     """
     
-    tf.scalar_summary(loss.op.name,loss)
+    tf.scalar_summary(loss.op.name, loss)
     optimizer = tf.train.AdamOptimizer(LEARNING_RATE)    
     global_step = tf.Variable(0, name='global_step', trainable=False)
-    train_op=optimizer.minimize(loss,global_step=global_step)
+    train_op = optimizer.minimize(loss, global_step=global_step)
     return train_op
