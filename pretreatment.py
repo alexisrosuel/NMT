@@ -45,7 +45,7 @@ def tokenize(corpus):
 
 def remove_less_used_words(X):
     """ Remove a token if it appears less than k time. Also remove the empty token """
-    #A faire la suppresion des tokens vides !
+    
     
     print('Removing token not enough used...')
     X_flat = [item for sublist in X for item in sublist]
@@ -58,41 +58,11 @@ def remove_less_used_words(X):
     for sentence in X:
     	for token in sentence:
     		if token == '':
-    			del token
+    			sentence.remove(token)
     		elif dictionary_occurences[token] <= k:
     			token = 'UNK'
 
-#    A OPTIMISER
-    already_deleted = list() # List of the token which must be replaced by 'UNK'
-    for i in range(len(X)):
-        for j in range(len(X[i])):
-            if X[i][j] == '':
-                del X[i][j] #If it is the empty token -> delete 
-            elif X[i][j] in already_deleted:
-                X[i][j] = 'UNK' # If already identified as a token to remove -> 'UNK' 
-            else:
-			# Else, if a new unused token is discovered -> remove and add to the list already_deleted
-                indice = union_token.index(X[i][j]) 
-                if occurences[indice] <= k:
-                    already_deleted.append(X[i][j])
-                    X[i][j] = 'UNK' 
 
-# Essayer avec un dict
-#    A OPTIMISER
-    already_kept = list() # List of the token which must be replaced by 'UNK'
-    for i in range(len(X)):
-        for j in range(len(X[i])):
-            if X[i][j] == '':
-                del X[i][j] #If it is the empty token -> delete 
-            elif X[i][j] not in already_kept:
-                X[i][j] = 'UNK' # If already identified as a token to remove -> 'UNK' 
-            else:
-			# Else, if a new unused token is discovered -> remove and add to the list already_deleted
-                indice = union_token.index(X[i][j]) 
-                if occurences[indice] > k:
-                    already_kept.append(X[i][j])
-                else:
-                	X[i][j] = 'UNK' 
 
     print('Removing completed.')
     
@@ -111,7 +81,7 @@ def remove_special_character(X):
 
     print('Removing special characters...')
 
-# Essai fonction
+
     for sentence in X:
         for token in sentence:
 			# Accents    
@@ -130,7 +100,7 @@ def remove_special_character(X):
    		 	# Punctuation
 
     
-    #X = map(remove_special_character_sentence,X)
+   
     return X
 
 
@@ -155,11 +125,11 @@ def pretreatment(X):
         3. not enough frequent token removed
         4. 'EOS' token added and sentences length standardized (to the max) 
     """
-# faire la separation en longueur ici ! 
+ 
 
     X = tokenize(X)
     X = remove_special_character(X)
-    #X = remove_less_used_words(X)
+    X = remove_less_used_words(X)
     X = standardize_sentence_length(X)
     
     return X
