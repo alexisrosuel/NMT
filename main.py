@@ -41,7 +41,7 @@ MAX_STEP = 1000 # number of training iteration
 
 
 def compute_T(X, language):
-    """ Conpute the T_FRENCH or T_ENGLISH values """
+    """ Compute the T_FRENCH or T_ENGLISH values """
     X_flat = [item for sublist in X for item in sublist]
     
     if language == 'english':    
@@ -52,7 +52,7 @@ def compute_T(X, language):
         T_FRENCH = len(list(set(X_flat)))
 
 def compute_S(X, language): 
-    """Conpute the S_FRENCH and S_ENGLISH values """
+    """ Compute the S_FRENCH and S_ENGLISH values """
     if language == 'english':    
         global S_ENGLISH 
         S_ENGLISH = len(X[0])
@@ -61,7 +61,7 @@ def compute_S(X, language):
         S_FRENCH = len(X[0])
         
 def compute_N(X, language): 
-    """Conpute the N_FRENCH and N_ENGLISH values """
+    """ Compute the N_FRENCH and N_ENGLISH values """
     if language == 'english':    
         global N_ENGLISH 
         N_ENGLISH = len(X)
@@ -105,7 +105,7 @@ def placeholder_input():
 #============================================================================== 
     
 def run_prediction(data, sess, placeholders, scores):
-    """ conpute the prediction of a target sentence given a source sentence """    
+    """ Compute the prediction of a target sentence given a source sentence """    
     X, Y = data
     source_pl, target_pl, training_pl = placeholders
     split_set = int(math.floor(0.9*len(X))) # Value for spliting the set in 90% training / 10% test 
@@ -164,24 +164,28 @@ def run_training(data, sess, placeholders, scores, loss, train_op, summary_op, s
             summary_writer.flush()
             
         if step % 10 == 0:
-            """ Log runtime activity """
-            run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-            run_metadata = tf.RunMetadata()
+            
         
             """ Evaluate performace on the test set """
             X_batch, Y_batch = batch(X[divide_set+1:], Y[divide_set+1:])
             feed_dict = {source_pl: X_batch, target_pl: Y_batch, training_pl: False}
             loss_value = sess.run(loss, feed_dict=feed_dict)
             
+            
+            print('===== Step %d: test loss = %.2f (%.3f sec)' % (step, loss_value, duration))
+    
+    	if step % 100 == 0:
+    		""" Log runtime activity """
+            run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+            run_metadata = tf.RunMetadata()
             summary_str = sess.run(summary_op, feed_dict=feed_dict, options=run_options, run_metadata=run_metadata)
             summary_writer.add_run_metadata(run_metadata, 'step%d' % step)
             summary_writer.add_summary(summary_str, step)
-            print('===== Step %d: test loss = %.2f (%.3f sec)' % (step, loss_value, duration))
-    
-    
     
     
 def set_up_data():
+	""" Load the data and compute the value of some global variables """
+    
     X, Y = pretreatment.import_dataset()
     
     
