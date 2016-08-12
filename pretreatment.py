@@ -13,7 +13,16 @@ import nltk
 k = 2 # Minimum number of occurence for a token to be learned
 
 def import_dataset():
-    """ Import the source and target sentences """
+    """ Import the source and target sentences 
+    
+    Args:
+    	_
+    	
+    Returns:
+    	List of sentences
+    	List of sentences
+    """
+    
     print("Opening documents.")
     english_set = open("Dataset/europarl-v7.fr-en.en", "r")
     french_set = open("Dataset/europarl-v7.fr-en.fr", "r")
@@ -37,14 +46,28 @@ def import_dataset():
 
 
 def tokenize(corpus):
-    """ Tokenize a corpus """
+    """ Tokenize a corpus 
+    
+    Args:
+    	List of sentences
+    	
+    Returns:
+    	List tokenised sentences (each sentence is a list of token)
+    """
     print("Tokenisation in progress...")
     tokenised_corpus= map(nltk.word_tokenize,corpus)
     print("Tokenisation finished.")
     return tokenised_corpus
 
 def remove_less_used_words(X):
-    """ Remove a token if it appears less than k time. Also remove the empty token """
+    """ Remove a token if it appears less than k time. Also remove the empty token 
+    
+    Args:
+    	List of tokenised sentences (each sentence is a list of token)
+    
+    Returns:
+    	List of tokenised sentences (each sentence is a list of token)
+    """
     
     
     print('Removing token not enough used...')
@@ -75,6 +98,12 @@ def remove_special_character(X):
         2. Uppercase
         3. Punctionation
         4. Numbers 
+        
+    Args:
+    	List of tokenised sentences (each sentence is a list of token)
+    	
+    Returns:
+    	List of tokenised sentences (each sentence is a list of token)
     """
 
 # CHIFFRE pour chiffre
@@ -105,7 +134,14 @@ def remove_special_character(X):
 
 
 def standardize_sentence_length(X):
-    """ Add the 'EOS' token at the end of each sentence, and make all the sentences the same size (here the choosen size is the longest sentence) by adding a token 'FILL' until the end """
+    """ Add the 'EOS' token at the end of each sentence, and make all the sentences the same size (here the choosen size is the longest sentence) by adding a token 'FILL' until the end 
+    
+    Args:
+    	List of tokenised sentences (each sentence is a list of token)
+    
+    Returns:
+    	List of tokenised sentences (each sentence is a list of token)
+    """
 
     longueur_max = max(map(len,X))+1 # Compute the sentence size 
 
@@ -123,7 +159,13 @@ def pretreatment(X):
         1. tokenisation
         2. special character removed
         3. not enough frequent token removed
-        4. 'EOS' token added and sentences length standardized (to the max) 
+        4. 'EOS' token added and sentences length standardized (to the max)
+    
+    Args:
+    	List of sentences
+    
+    Returns:
+    	List of tokenised sentences (each sentence is a list of token)
     """
  
 
