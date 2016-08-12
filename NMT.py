@@ -58,7 +58,7 @@ def produce_embeddings(source):
         4D tensor, shape=(BATCH_SIZE, 1, S_ENGLISH, EMBEDDINGS_DIMENSION)
     """
     
-    with tf.variable_scope('encode_dense'):
+    with tf.variable_scope('Embeddings'):
         weights = tf.get_variable(name='weights', 
                                   shape=[1,1,T_ENGLISH,EMBEDDINGS_DIMENSION], 
                                   initializer=tf.random_normal_initializer(stddev=1.0/math.sqrt(float(T_ENGLISH)))
@@ -87,7 +87,7 @@ def embeddings_to_state_vector(embeddings):
         2D tensor, shape=(BATCH_SIZE, LSTM_SIZE)
     """
 
-    with tf.variable_scope('forward') as scope_forward:
+    with tf.variable_scope('Encoding') as scope_forward:
         # remove the dimensions 1
         inputs = tf.squeeze(embeddings)
         # Permuting batch_size and n_steps
@@ -133,7 +133,7 @@ def state_vector_to_probability(state_vector, target, training):
         3D tensor, shape=(BATCH_SIZE, S_FRENCH, T_FRENCH)
     """
 
-    with tf.name_scope('transformation'):
+    with tf.name_scope('shape_transformation'):
         # remove the dimensions 1
         target = tf.squeeze(target)
         # Permuting batch_size and n_steps
@@ -144,7 +144,7 @@ def state_vector_to_probability(state_vector, target, training):
         target = tf.split(0, S_FRENCH, target )
         # S_FRENCH; BATCH; T_FRENCH
             
-    with tf.variable_scope('backward') as scope_backward:     
+    with tf.variable_scope('Decoding') as scope_backward:     
         cell_backward = tf.nn.rnn_cell.LSTMCell(LSTM_SIZE, num_proj = EMBEDDINGS_DIMENSION, state_is_tuple = True)       
         outputs = [None] * S_FRENCH
         y = [None] * S_FRENCH
@@ -212,7 +212,7 @@ def conpute_loss(scores, target):
         tf.float32 tensor
     """
     
-    with tf.name_scope('loss_computation'):
+    with tf.name_scope('Loss_computation'):
         sortie_loss = tf.squeeze(target)    
         scores = tf.squeeze(scores) 
         
@@ -224,17 +224,21 @@ def conpute_loss(scores, target):
         loss = tf.reduce_mean(loss)
         
         l2_weights = 0.01
-        with tf.variable_scope('encode_dense', reuse=True):
+        with tf.variable_scope('Embeddings', reuse=True):
             w = tf.get_variable('weights')
             b = tf.get_variable('biases')
-            loss -= l2_weights *tf.nn.l2_loss(w)
-            loss -= l2_weights *tf.nn.l2_loss(b)
+            loss = loss
+                   + l2_weights*tf.nn.l2_loss(w)
+                   + l2_weights*tf.nn.l2_loss(b)
             
-        with tf.variable_scope('backward', reuse=True):
+            
+        with tf.variable_scope('Decoding', reuse=True):
             w = tf.get_variable('weights')
             b = tf.get_variable('biases')
-            loss -= l2_weights *tf.nn.l2_loss(w)
-            loss -= l2_weights *tf.nn.l2_loss(b)
+            loss = loss
+                   + l2_weights*tf.nn.l2_loss(w)
+                   + l2_weights*tf.nn.l2_loss(b)
+        
         return -loss
     
     
