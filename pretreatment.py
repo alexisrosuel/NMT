@@ -49,7 +49,7 @@ def tokenize(corpus):
     """ Tokenize a corpus 
     
     Args:
-    	List of sentences
+    	corpus: List of sentences
     	
     Returns:
     	List tokenised sentences (each sentence is a list of token)
@@ -63,7 +63,7 @@ def remove_less_used_words(X):
     """ Remove a token if it appears less than k time. Also remove the empty token 
     
     Args:
-    	List of tokenised sentences (each sentence is a list of token)
+    	X: List of tokenised sentences (each sentence is a list of token)
     
     Returns:
     	List of tokenised sentences (each sentence is a list of token)
@@ -100,7 +100,7 @@ def remove_special_character(X):
         4. Numbers 
         
     Args:
-    	List of tokenised sentences (each sentence is a list of token)
+    	X: List of tokenised sentences (each sentence is a list of token)
     	
     Returns:
     	List of tokenised sentences (each sentence is a list of token)
@@ -137,7 +137,7 @@ def standardize_sentence_length(X):
     """ Add the 'EOS' token at the end of each sentence, and make all the sentences the same size (here the choosen size is the longest sentence) by adding a token 'FILL' until the end 
     
     Args:
-    	List of tokenised sentences (each sentence is a list of token)
+    	X: List of tokenised sentences (each sentence is a list of token)
     
     Returns:
     	List of tokenised sentences (each sentence is a list of token)
@@ -162,7 +162,7 @@ def pretreatment(X):
         4. 'EOS' token added and sentences length standardized (to the max)
     
     Args:
-    	List of sentences
+    	X: List of sentences
     
     Returns:
     	List of tokenised sentences (each sentence is a list of token)
