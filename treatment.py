@@ -7,7 +7,17 @@ This file provide the functions to convert sentence in one-hot representation, o
 import numpy as np
 
 def convert_to_one_hot(X, params):
-    """ Convert each token into its corresponding one-hot vector representation """    
+    """ Convert each token into its corresponding one-hot vector representation 
+    
+    Args:
+        X: List of tokenised sentences (each sentence is a list of token)
+        params: list of parameters (number of sentences, length of the sentences, and number of different tokens
+        
+    Returns:
+        4D numpy array, shape=(N,1,S,T)
+        List of the different token
+    """    
+    
     N, S, T = params
     X_flat = [item for sublist in X for item in sublist]
     union_token = list(set(X_flat))
@@ -21,7 +31,16 @@ def convert_to_one_hot(X, params):
 
 
 def convert_one_hot_to_string(X, corpus):
-    """ Convert the one-hot vector representation into the corresponding word """
+    """ Convert the one-hot vector representation into the corresponding word 
+    
+    Args:
+        X: 3D numpy array, shape=(N,S,T)
+        corpus: List of the different tokens
+        
+    Returns:
+        List of sentences, where each sentence is a list of token
+    """
+    
     result = list()
     for sentence in X:
         result_one_sentence = list()
@@ -31,12 +50,27 @@ def convert_one_hot_to_string(X, corpus):
     return result
                 
 def list_to_sentence(token_list):
-    """ Produce a sentence given the list of token to assemble """
+    """ Produce a sentence given the list of token to assemble 
+    
+    Args:
+        token_list: List of token
+    
+    Returns:
+        String (concatenation of the token with ' ' between each)"""
     return " ".join(token_list)
 
 
 def sentences_from_one_hot(prediction, corpus):
-    """ Convert the prediction of the NMT from the one_hot representation to the corresponding string """
+    """ Convert the prediction of the NMT from the one_hot representation to the corresponding string 
+    
+    Args:
+        prediction: 3D numpy array
+        corpus: list of the different tokens
+    
+    Returns:
+        List of string
+    """
+    
     a_afficher = 15 # Number of setences to keep for display
 
     list_of_tokens = convert_one_hot_to_string(prediction, corpus) # Convert each token into from its one-hot representation to the real token given the right corpus
