@@ -30,9 +30,10 @@ CORPUS_ENGLISH = list() # list of the english token
 CORPUS_FRENCH = list() # list of the french token
 
 BATCH_SIZE = 64 
-SENTENCE_LENGTH = 1
 
-MAX_STEP = 1000 # number of training iteration
+
+MAX_STEP = 100 # number of training iteration
+SENTENCE_LENGTH = 12
 
 
 #==============================================================================
@@ -234,56 +235,47 @@ def run_training(data, sess, placeholders, scores, loss, train_op, summary_op, s
             summary_writer.flush()
             
         if step % 10 == 0:
-            
-        
             """ Evaluate performace on the test set """
             X_batch, Y_batch = batch(X[divide_set+1:], Y[divide_set+1:])
             feed_dict = {source_pl: X_batch, target_pl: Y_batch, training_pl: False}
-            loss_value = sess.run(loss, feed_dict=feed_dict)
-            
-            
-            print('===== Step %d: test loss = %.2f (%.3f sec)' % (step, loss_value, duration))
+            loss_value_test = sess.run(loss, feed_dict=feed_dict)
+            print('===== Step %d: test loss = %.2f (%.3f sec)' % (step, loss_value_test, duration))
+            if loss_value_test > 1.15 * loss_value:
+                break
     
-    	if step % 100 == 0:
-    		""" Log runtime activity """
+        if step % 100 == 0:
+            """ Log runtime activity """
             run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
             run_metadata = tf.RunMetadata()
             summary_str = sess.run(summary_op, feed_dict=feed_dict, options=run_options, run_metadata=run_metadata)
             summary_writer.add_run_metadata(run_metadata, 'step%d' % step)
             summary_writer.add_summary(summary_str, step)
-    
+        
     
 def set_up_data():
-	""" Load the data and compute the value of some global variables 
+    """ Load the data and compute the value of some global variables 
 	
-	Args:
-		_
+    Args:
+        _
 		
-	Returns:
-		4D numpy array containing the source sentences, using one-hot vector representation
-		4D numpy array containing the target sentences, using one-hot vector representation
-	"""
+    Returns:
+        4D numpy array containing the source sentences, using one-hot vector representation
+        4D numpy array containing the target sentences, using one-hot vector representation
+    """
     
     X, Y = pretreatment.import_dataset()
-    
-    
-    
-    
-   
     
     print('Applying cleansing...')
     X = pretreatment.pretreatment(X)
     Y = pretreatment.pretreatment(Y)
     
+    indice = [i for i in range(len(X)) if (len(X[i]) > SENTENCE_LENGTH-2 and len(X[i]) < SENTENCE_LENGTH+1 and len(Y[i]) > SENTENCE_LENGTH-2 and len(Y[i]) < SENTENCE_LENGTH+1)]#(len(X[i]) > SENTENCE_LENGTH and len(X[i]) < 2 * SENTENCE_LENGTH and len(Y[i]) > SENTENCE_LENGTH and len(Y[i]) < 2 * SENTENCE_LENGTH)]
+    X = [X[i] for i in indice]
+    Y = [Y[i] for i in indice]
     
-    for sentence in X:
-        del sentence[SENTENCE_LENGTH+1:]
-        
-    
-    
-    for sentence in Y:
-        del sentence[SENTENCE_LENGTH+1:]
-    
+    X = pretreatment.standardize_sentence_length(X)
+    Y = pretreatment.standardize_sentence_length(Y)
+      
     print('Computing the corpus sizes...')
     compute_T(X, 'english')
     compute_T(Y, 'french')
@@ -306,8 +298,6 @@ def set_up_data():
     Y, CORPUS_FRENCH= treatment.convert_to_one_hot(Y, params_FRENCH)
     
     return (X, Y)
-    
-    
     
     
 def main():
@@ -334,7 +324,6 @@ def main():
         
         saver = tf.train.Saver()
         
-    
         print('Running training...')
         run_training(data, sess, placeholders, scores, loss, train_op, summary_op, summary_writer)
         
@@ -344,8 +333,6 @@ def main():
         #saver.restore(sess, 'my-model-150')
         print('Conputing predictions...')
         run_prediction(data, sess, placeholders, scores)
-        
-        
 
 if __name__ == '__main__':
     main()
