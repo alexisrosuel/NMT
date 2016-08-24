@@ -9,7 +9,7 @@ import tensorflow as tf
 import math 
 
 EMBEDDINGS_DIMENSION = 400 # Dimension of the embeddings
-LSTM_SIZE = 15 # Size of the RNN (using LSTM cells)
+LSTM_SIZE = 100 # Size of the RNN (using LSTM cells)
 LSTM_LAYER = 3 # Number of RNN layers (using LSTM cells)
 
 T_ENGLISH = 0 # Updated at the beginning of the inference
@@ -170,7 +170,7 @@ def state_vector_to_probability(state_vector, target, training):
             outputs[t] = tf.nn.softmax(tf.matmul(y[t], weights) + biases)
             scope_backward.reuse_variables()
         
-        return tf.transpose(outputs, shape=[1,0,2])
+        return tf.transpose(outputs, perm=[1,0,2])
     
     
 def decode(state_vector, target, training):
@@ -204,29 +204,25 @@ def conpute_loss(scores, target):
         sortie_loss = tf.squeeze(target)    
         scores = tf.squeeze(scores) 
         
-        loss = tf.reduce_sum(tf.mul(scores, sortie_loss), reduction_indice=2) # Get the activation of the target token
+        loss = tf.reduce_sum(tf.mul(scores, sortie_loss), reduction_indices=2) # Get the activation of the target token
         #loss = tf.reduce_sum(loss,reduction_indices=2)
         loss = tf.clip_by_value(loss, clip_value_min=1e-10, clip_value_max=1.0)
         #loss = 
         loss = tf.reduce_sum(tf.log(loss), reduction_indices=1)
-        loss = tf.reduce_mean(loss)
+        loss = -tf.reduce_mean(loss)
         
-        l2_weights = 0.01
+        l2_weights = 0.00
         with tf.variable_scope('Embeddings', reuse=True):
             w = tf.get_variable('weights')
             b = tf.get_variable('biases')
-            loss = loss
-                   + l2_weights*tf.nn.l2_loss(w)
-                   + l2_weights*tf.nn.l2_loss(b)
+            loss = loss + l2_weights*tf.nn.l2_loss(w) + l2_weights*tf.nn.l2_loss(b)
             
         with tf.variable_scope('Decoding', reuse=True):
             w = tf.get_variable('weights')
             b = tf.get_variable('biases')
-            loss = loss
-                   + l2_weights*tf.nn.l2_loss(w)
-                   + l2_weights*tf.nn.l2_loss(b)
+            loss = loss + l2_weights*tf.nn.l2_loss(w) + l2_weights*tf.nn.l2_loss(b)
         
-        return -loss
+        return loss
     
     
 def training(loss):
