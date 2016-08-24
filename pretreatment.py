@@ -6,6 +6,8 @@ This file import the data and apply the appropriate cleansing rules
 
 import re
 import unicodedata
+from collections import Counter
+
 
 import nltk
 # nltk.download() # Only for the first run
@@ -28,8 +30,8 @@ def import_dataset():
     french_set = open("Dataset/europarl-v7.fr-en.fr", "r")
     
     print("Reading documents...")
-    X = english_set.read(1000000).decode("utf-8")
-    Y = french_set.read(1000000).decode("utf-8")
+    X = english_set.read(50000000).decode("utf-8")
+    Y = french_set.read(50000000).decode("utf-8")
     
     print("Closing documents.")
     english_set.close()
@@ -73,19 +75,19 @@ def remove_less_used_words(X):
     print('Removing token not enough used...')
     X_flat = [item for sublist in X for item in sublist]
     
-    """ Create a dictionary {token1: token1_occurence, token2: token2_occurence, etc.} """
-    union_token = list(set(X_flat))
-    occurences = map(X_flat.count,union_token)
-    dictionary_occurences = dict(zip(union_token, occurences))
+    """ Create a dictionary {token1: token1_occurence, token2: token2_occurence, etc.} """    
+    dictionary_occurences = Counter(X_flat)
     
-    for sentence in X:
-    	for token in sentence:
-    		if token == '':
-    			sentence.remove(token)
-    		elif dictionary_occurences[token] <= k:
-    			token = 'UNK'
-
-
+    for i in range(len(X)):
+        to_be_deleted = 0 # Count the number of empty string to delete after the following processing
+        for j in range(len(X[i])):
+            if X[i][j] == '':
+                X[i].insert(len(X[i]), X[i].pop(j)) # Deplace the empty string at the end of the current sentence
+                j = j - 1
+                to_be_deleted += 1
+            elif dictionary_occurences[X[i][j]] <= k:
+                X[i][j] = 'UNK'
+        X[i] = X[i][:-to_be_deleted] # Delete the empty string deplaced at the end of the sentence
     print('Removing completed.')
     
     return X
@@ -110,18 +112,19 @@ def remove_special_character(X):
     print('Removing special characters...')
 
 
-    for sentence in X:
-        for token in sentence:
-			# Accents    
-            token = unicodedata.normalize('NFD', token).encode('ascii', 'ignore') 
+    for i in range(len(X)):
+        for j in range(len(X[i])):
+            # Accents    
+            token = unicodedata.normalize('NFD', X[i][j]).encode('ascii', 'ignore') 
             token = token.decode('utf-8')
     
-    		# Special characters
+            # Special characters
             token = re.sub(r'[^\w\s]','',token)
     
-   		 	# Uppercase 
+            # Uppercase 
             token = token.lower()
-   	 
+            X[i][j] = token
+            
    		 	# Numbers
    		 	# ...
     
@@ -145,7 +148,7 @@ def standardize_sentence_length(X):
     longueur_max = max(map(len,X))+1 # Compute the sentence size 
 
     for sentence in X:
-        sentence.append('EOS')
+        #sentence.append('EOS')
         if len(sentence) < longueur_max:
             sentence.extend(['FILL' for i in range(1 + longueur_max - len(sentence))])
 
@@ -166,12 +169,11 @@ def pretreatment(X):
     Returns:
     	List of tokenised sentences (each sentence is a list of token)
     """
- 
+
 
     X = tokenize(X)
     X = remove_special_character(X)
     X = remove_less_used_words(X)
-    X = standardize_sentence_length(X)
-    
+
     return X
 
